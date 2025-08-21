@@ -877,8 +877,45 @@ function Pandoc(doc)
     // Find the sidebar element
     var sidebar = document.querySelector('#quarto-sidebar');
     if (sidebar) {
-      // Replace the entire sidebar with our generated navbar
-      sidebar.outerHTML = navbarHTML;
+      // Get the current URL
+      var currentUrl = window.location.href;
+      
+      // Dynamic base path detection for any deployment context
+      var processedNavbarHTML = navbarHTML;
+      
+      // Function to detect the base path from current URL
+      function getBasePath() {
+        var pathname = window.location.pathname;
+        var segments = pathname.split('/').filter(function(segment) { return segment.length > 0; });
+        return segments.length > 0 ? '/' + segments[0] + '/' : '/';
+      }
+      
+      // Get the current base path and apply it to href attributes that need it
+      var basePath = getBasePath();
+      if (basePath !== '/') {
+        // Smart replacement: only replace href="/" patterns that are root-relative
+        // This prevents double-prefixing issues
+        var tempDiv = document.createElement('div');
+        tempDiv.innerHTML = processedNavbarHTML;
+        
+        // Find all links and update only the root-relative ones
+        var links = tempDiv.querySelectorAll('a[href^="/"]');
+        links.forEach(function(link) {
+          var href = link.getAttribute('href');
+          // Only update if it's a root-relative path and doesn't already have the base path
+          if (href.startsWith('/') && !href.startsWith(basePath)) {
+            link.setAttribute('href', basePath + href.substring(1));
+          }
+        });
+        
+        processedNavbarHTML = tempDiv.innerHTML;
+        console.log('Auto Navbar: Applied dynamic base path: ' + basePath);
+      } else {
+        console.log('Auto Navbar: No base path needed (root deployment)');
+      }
+      
+      // Replace the entire sidebar with our processed navbar
+      sidebar.outerHTML = processedNavbarHTML;
       console.log('Auto Navbar: Navbar injected successfully');
     } else {
       console.warn('Auto Navbar: Sidebar element not found');

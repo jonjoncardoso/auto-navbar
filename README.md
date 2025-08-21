@@ -32,7 +32,7 @@ This is perfect for:
 ## Installation
 
 ```bash
-quarto add joncardoso/auto-navbar
+quarto install extension jonjoncardoso/auto-navbar@v0.1.0
 ```
 
 ## Usage
